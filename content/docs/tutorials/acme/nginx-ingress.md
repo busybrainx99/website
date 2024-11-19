@@ -10,16 +10,49 @@ using NGINX.
 
 > *Skip this section if you have helm installed.*
 
-The easiest way to install `cert-manager` is to use [`Helm`](https://helm.sh), a
-templating and deployment tool for Kubernetes resources.
+The easiest way to install `cert-manager` is to use [`Helm`](https://helm.sh), a Kubernetes package manager that simplifies resource deployment.
 
-First, ensure the Helm client is installed following the [Helm installation
-instructions](https://helm.sh/docs/intro/install/).
+To install Helm, follow the [official Helm installation guide](https://helm.sh/docs/intro/install/) or use one of the quick installation commands below.
 
 For example, on MacOS:
 
 ```bash
 brew install kubernetes-helm
+```
+After installing, verify that Helm is accessible:
+
+```bash
+helm version
+```
+if you're new to Helm, consult the official documentation for additional details.
+
+## Step 2 - Deploy an Example Service
+
+Before proceeding to configure cert-manager, we’ll deploy a sample service. This service will demonstrate how cert-manager works with an ingress resource for TLS certificates. For this tutorial
+manifests. stopped here... This quick-start uses manifests to create and expose a sample service.
+The example service uses [`kuard`](https://github.com/kubernetes-up-and-running/kuard),
+a demo application.
+
+The quick-start example uses three manifests for the sample. The first two are a
+sample deployment and an associated service:
+
+```yaml file=./example/deployment.yaml
+```
+
+```yaml file=./example/service.yaml
+```
+
+You can create download and reference these files locally, or you can
+reference them from the GitHub source repository for this documentation.
+To install the example service from the tutorial files straight from GitHub, do
+the following:
+
+```bash
+kubectl apply -f https://raw.githubusercontent.com/cert-manager/website/master/content/docs/tutorials/acme/example/deployment.yaml
+# expected output: deployment.extensions "kuard" created
+
+kubectl apply -f https://raw.githubusercontent.com/cert-manager/website/master/content/docs/tutorials/acme/example/service.yaml
+# expected output: service "kuard" created
 ```
 
 ## Step 2 - Deploy the NGINX Ingress Controller
