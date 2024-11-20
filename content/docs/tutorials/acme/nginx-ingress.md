@@ -6,6 +6,22 @@ description: 'cert-manager tutorials: Using ingress-nginx to solve an ACME HTTP-
 This tutorial will detail how to install and secure ingress to your cluster
 using NGINX.
 
+## Prerequisites
+
+Before you begin, ensure you have the following: 
+
+1. A running Kubernetes Cluster
+  
+2. Kubectl installed and configured
+ - The kubectl CLI should be installed and set up to connect to your Kubernetes cluster.
+ - Verify connectivity using:
+   ```bash
+   kubectl get nodes
+   ```
+   You should see a list of nodes in your cluster.
+   
+3. A domain name
+
 ## Step 1 - Install Helm
 
 > *Skip this section if you have helm installed.*
