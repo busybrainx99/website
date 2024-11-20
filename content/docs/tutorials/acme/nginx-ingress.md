@@ -15,7 +15,7 @@ Before you begin, ensure you have the following:
   - Ensure the cluster is functional and accessible using kubectl.
   
 3. Kubectl installed and configured
-  - The kubectl CLI should be installed and set up to connect to your Kubernetes cluster.
+      - The kubectl CLI should be installed and set up to connect to your Kubernetes cluster.
   - Verify connectivity using:
    ```bash
    kubectl get nodes
