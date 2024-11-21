@@ -25,7 +25,7 @@ Before you begin, ensure you have the following:
 3. A domain name
 In this tutorial, we will demonstrate how to expose your service using an Ingress resource, which typically requires a domain name to route traffic to your service.
 
-    - For production environments: You will need to have a domain name that you can map to your Ingress resources (e.g., www.example.com),    
+    - For production environments: You will need to have a domain name that you can map to your Ingress resources (e.g.,`www.cert-manager.io`),    
 ensuring that external traffic can reach your service securely.
 
     - For this tutorial: We’ll use a placeholder domain, such as `example.com,` to simplify the setup. You can replace it with your own domain name in a real-world scenario
@@ -50,21 +50,34 @@ helm version
 ```
 if you're new to Helm, consult the official documentation for additional details.
 
-## Step 2 - Deploy an Example Service
+## Step 2 - Deploy an Example Web Service
 
-Before proceeding to configure cert-manager, we’ll deploy a sample service. This service will demonstrate how cert-manager works with an ingress resource for TLS certificates. For this tutorial
-manifests. stopped here... This quick-start uses manifests to create and expose a sample service.
-The example service uses [`kuard`](https://github.com/kubernetes-up-and-running/kuard),
-a demo application.
+To demonstrate how to secure your services with ingress and cert-manager, we will deploy a simple web server. This server responds to HTTPS requests with "hello world!" and is pre-configured to utilize TLS certificates. These certificates will be provisioned in later steps.
 
-The quick-start example uses three manifests for the sample. The first two are a
-sample deployment and an associated service:
+Before applying the manifest, ensure you understand its components. The deployment defines a pod running the web server, while the service exposes it within the cluster.
 
-```yaml file=./example/deployment.yaml
+### Deployment Manifest
+
+The following manifest deploys the web server:
+
+```yaml file=./example/deployment_goggle_sample.yaml
 ```
 
-```yaml file=./example/service.yaml
+### Apply the Deployment
+Use the following command to deploy the web server:
+```bash
+kubectl apply -f deployment.yaml
 ```
+This command above will create the deployment and its associated resources. After running it, verify that the pods are running successfully by executing:
+```bash
+kubectl get pods
+```
+
+After deploying the web server, we need to expose it within the cluster. The service resource ensures that the server can be accessed on a stable network endpoint within the Kubernetes environment.
+
+```yaml file=./example/svc_google_sample.yaml
+```
+
 
 You can create download and reference these files locally, or you can
 reference them from the GitHub source repository for this documentation.
