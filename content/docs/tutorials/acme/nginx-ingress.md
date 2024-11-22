@@ -52,7 +52,7 @@ if you're new to Helm, consult the official documentation for additional details
 
 ## Step 2 - Deploy an Example Web Service
 
-To demonstrate how to secure your services with ingress and cert-manager, we will deploy a simple web server. This server responds to HTTPS requests with "hello world!" and is pre-configured to utilize TLS certificates. These certificates will be provisioned in later steps.
+To demonstrate how to secure your services with ingress and cert-manager, we will deploy a simple NGINX web server. This server initially responds to HTTP requests with "hello world!" and will later be configured to handle HTTPS traffic securely using TLS certificates from cert-manager.
 
 Before applying the manifest, ensure you understand its components. The deployment defines a pod running the web server, while the service exposes it within the cluster.
 
@@ -60,7 +60,7 @@ Before applying the manifest, ensure you understand its components. The deployme
 
 The following manifest deploys the web server:
 
-```yaml file=./example/deployment_goggle_sample.yaml
+```yaml file=./example/hello-app-deployment.yaml
 ```
 
 ### Apply the Deployment
@@ -68,15 +68,21 @@ Use the following command to deploy the web server:
 ```bash
 kubectl apply -f deployment.yaml
 ```
-This command above will create the deployment and its associated resources. After running it, verify that the pods are running successfully by executing:
+This command will create the deployment resource for the web server. After running it, verify that the pod is running successfully by executing:
 ```bash
 kubectl get pods
 ```
 
-After deploying the web server, we need to expose it within the cluster. The service resource ensures that the server can be accessed on a stable network endpoint within the Kubernetes environment.
+Once the web server is running, we need to expose it within the cluster. The service resource ensures that the server can be accessed on a stable network endpoint within the Kubernetes environment.
 
-```yaml file=./example/svc_google_sample.yaml
+```yaml file=./example/hello-app-service.yaml
 ```
+### Apply the Service
+Use the command to deploy the service:
+```bash
+kubectl apply -f service.yaml
+```
+
 
 
 You can create download and reference these files locally, or you can
