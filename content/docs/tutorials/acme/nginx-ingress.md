@@ -213,11 +213,9 @@ hello-app-ingress   nginx   example.example.com   192.168.64.100   80      20s
 > your service.
 
 Make sure the service is reachable at the domain name you added above, for
-example `http://example.example.com`. The simplest way is to open a browser
-and enter the name that you set up in DNS, and for which we just added the
-ingress.
+example `http://example.example.com`. While the DNS configuration is not yet in place, you can check if your ingress is correctly routing traffic using a command line tool like curl.
 
-You can also use a command line tool like curl to check the status of your ingress. Here’s how you can do it:
+Here’s how you can check the status of your ingress:
 ```bash
 $ curl -kivL -H 'Host: www.example.com' 'http://192.168.64.100'
 ```
@@ -252,6 +250,14 @@ Version: 1.0.0
 Hostname: hello-app-5fdb69cd94-lxtv4
 * Connection #0 to host 192.168.64.100 left intact
 ```
+### What to Look for:
+
+ - Status Code: You should see `HTTP/1.1 200 OK,` indicating that the ingress is correctly routing traffic to your application.
+ - Response Content: You should see the expected content, such as `Hello, world!` and details about the app version and hostname, confirming that the application is running properly.
+ - IP Address: The IP address here is the external IP of the ingress, which may differ from the Ingress controller’s internal IP. Ensure you're using the correct IP from the `LoadBalancer` service.
+   
+If curl confirms that the ingress is routing traffic correctly, the next step is to set up DNS to route traffic to the correct address in a user-friendly way, i.e., via a browser.
+
 ## Step 4 - Assign a DNS name
 
 The external IP allocated to the ingress controller is where all incoming traffic should be routed. To make this work, you'll need to add this IP address to a DNS zone that you control. For example, you could map it to a domain like example.example.com.
