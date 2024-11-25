@@ -82,69 +82,75 @@ Use the command to deploy the service:
 ```bash
 kubectl apply -f service.yaml
 ```
+Once the service deployment is successful, you can check that the service has been created and is exposing the web server correctly by running:
+```bash
+kubectl get svc hello-app
+```
+This command will display information about the service, including the assigned ClusterIP and port, confirming that the service is ready to route traffic to the web server pod.
 
-
-
-You can create download and reference these files locally, or you can
+You can create, download and reference these files locally, or you can
 reference them from the GitHub source repository for this documentation.
 To install the example service from the tutorial files straight from GitHub, do
 the following:
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/cert-manager/website/master/content/docs/tutorials/acme/example/deployment.yaml
-# expected output: deployment.extensions "kuard" created
+kubectl apply -f https://raw.githubusercontent.com/cert-manager/website/master/content/docs/tutorials/acme/example/hello-app-deployment.yaml
+# expected output: deployment.extensions "hello-app" created
 
-kubectl apply -f https://raw.githubusercontent.com/cert-manager/website/master/content/docs/tutorials/acme/example/service.yaml
-# expected output: service "kuard" created
+kubectl apply -f https://raw.githubusercontent.com/cert-manager/website/master/content/docs/tutorials/acme/example/hello-app-service.yaml
+# expected output: service "hello-app" created
 ```
 
-## Step 2 - Deploy the NGINX Ingress Controller
+So far, we’ve deployed a web server and ensured it is accessible within the Kubernetes cluster through a service. However, to make the application accessible from outside the cluster, we need to expose it using an Ingress resource.
+The Ingress acts as a gateway that manages external HTTP and HTTPS traffic and directs it to the appropriate services within your cluster.
+To use an Ingress, we need an Ingress Controller. This tutorial will guide you through deploying the NGINX Ingress Controller and configuring an Ingress resource to expose your service.
 
-A [`kubernetes ingress controller`](https://kubernetes.io/docs/concepts/services-networking/ingress) is
-designed to be the access point for HTTP and HTTPS traffic to the software
-running within your cluster. The `ingress-nginx-controller` does this by providing
-an HTTP proxy service supported by your cloud provider's load balancer.
 
-You can get more details about `ingress-nginx` and how it works from the
-[documentation for `ingress-nginx`](https://kubernetes.github.io/ingress-nginx/).
+## Step 3 - Deploy the NGINX Ingress Controller and Ingress Resource
 
-Add the latest helm repository for the ingress-nginx
+To expose the hello-app externally, we need an Ingress Controller and an Ingress resource.
 
+A [`kubernetes Ingress Controller`](https://kubernetes.io/docs/concepts/services-networking/ingress) acts as an access point for HTTP and HTTPS traffic, directing it to the services running within your Kubernetes cluster. In this tutorial, we’ll use the NGINX Ingress Controller to manage traffic routing. This controller is deployed as a Kubernetes service, handling HTTP(S) requests and forwarding them to the appropriate backend services.
+
+You can learn more about `NGINX Ingress` from the [official documentation](https://kubernetes.github.io/ingress-nginx/).
+
+### 3a Install the Nginx Ingress Controller
+
+First, add the Helm repository for the NGINX Ingress Controller:
 ```bash
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 ```
 
 Update the helm repository with the latest charts:
-
 ```bash
 $ helm repo update
 Hang tight while we grab the latest from your chart repositories...
 ...Skip local chart repository
-...Successfully got an update from the "stable" chart repository
 ...Successfully got an update from the "ingress-nginx" chart repository
-...Successfully got an update from the "coreos" chart repository
 Update Complete. ⎈ Happy Helming!⎈
 ```
-
-Use `helm` to install an NGINX Ingress controller:
+Install the NGINX Ingress controller using Helm:
 
 ```bash
-$ helm install quickstart ingress-nginx/ingress-nginx
+$ helm install nginx-ingress ingress-nginx/ingress-nginx
 
-NAME: quickstart
+NAME: nginx-ingress
 ... lots of output ...
 ```
 
-It can take a minute or two for the cloud provider to provide and link a public
-IP address. When it is complete, you can see the external IP address using the
-`kubectl` command:
+Once the NGINX Ingress Controller is deployed, it can take a minute or two for the cluster to configure the service and provide an external IP address (if using a cloud provider's LoadBalancer). For on-premise or local Kubernetes environments like MicroK8s, you will need to check the ClusterIP or manually expose the service.
 
+You can verify the status of the ingress controller service with the following command:
 ```bash
 $ kubectl get svc
-NAME                                            TYPE           CLUSTER-IP     EXTERNAL-IP   PORT(S)                      AGE
-kubernetes                                      ClusterIP      10.0.0.1       <none>        443/TCP                      13m
-quickstart-ingress-nginx-controller             LoadBalancer   10.0.114.241   <pending>     80:31635/TCP,443:30062/TCP   8m16s
-quickstart-ingress-nginx-controller-admission   ClusterIP      10.0.188.24    <none>        443/TCP                      8m16s
+```
+This will output a table similar to the following:
+```bash
+NAME                                               TYPE           CLUSTER-IP       EXTERNAL-IP      PORT(S)                      AGE
+hello-app                                          ClusterIP      10.152.183.154   <none>           80/TCP                       30m
+kubernetes                                         ClusterIP      10.152.183.1     <none>           443/TCP                      60m
+nginx-ingress-ingress-nginx-controller             LoadBalancer   10.152.183.166   <pending>        80:32482/TCP,443:32483/TCP   14m
+nginx-ingress-ingress-nginx-controller-admission   ClusterIP      10.152.183.240   <none>           443/TCP                      14m
 ```
 
 This command shows you all the services in your cluster (in the `default`
@@ -158,61 +164,18 @@ creating the ingress controller and using that IP address rather than assigning
 an IP address from a pool. Read through the documentation from your cloud
 provider on how to arrange that.
 
-## Step 3 - Assign a DNS name
+### 3b Configure an Ingress Resource for the hello-app
+With the Ingress Controller in place, we can create an Ingress resource to expose the hello-app externally. In this step, you will modify the example manifest to reflect the domain you own or control. This will ensure that your service is accessible from the outside world.
 
-The external IP that is allocated to the ingress-controller is the IP to which
-all incoming traffic should be routed. To enable this, add it to a DNS zone you
-control, for example as `www.example.com`.
+Here’s an example Ingress manifest you can use as a starting point:
 
-This quick-start assumes you know how to assign a DNS entry to an IP address and
-will do so.
-
-## Step 4 - Deploy an Example Service
-
-Your service may have its own chart, or you may be deploying it directly with
-manifests. This quick-start uses manifests to create and expose a sample service.
-The example service uses [`kuard`](https://github.com/kubernetes-up-and-running/kuard),
-a demo application.
-
-The quick-start example uses three manifests for the sample. The first two are a
-sample deployment and an associated service:
-
-```yaml file=./example/deployment.yaml
+```yaml file=./example/hello-app-ingress.yaml
 ```
-
-```yaml file=./example/service.yaml
-```
-
-You can create download and reference these files locally, or you can
-reference them from the GitHub source repository for this documentation.
-To install the example service from the tutorial files straight from GitHub, do
-the following:
+You can download the sample manifest from GitHub , edit it, and submit the manifest to Kubernetes with the command below. Edit the file in your editor, and once it is saved:
 
 ```bash
-kubectl apply -f https://raw.githubusercontent.com/cert-manager/website/master/content/docs/tutorials/acme/example/deployment.yaml
-# expected output: deployment.extensions "kuard" created
-
-kubectl apply -f https://raw.githubusercontent.com/cert-manager/website/master/content/docs/tutorials/acme/example/service.yaml
-# expected output: service "kuard" created
-```
-
-An [Ingress resource](https://kubernetes.io/docs/concepts/services-networking/ingress/) is
-what Kubernetes uses to expose this example service outside the cluster.  You
-will need to download and modify the example manifest to reflect the domain that
-you own or  control to complete this example.
-
-A sample ingress you can start with is:
-
-```yaml file=./example/ingress.yaml
-```
-
-You can download the sample manifest from GitHub , edit it, and submit the
-manifest to Kubernetes with the command below. Edit the file in your editor, and once
-it is saved:
-
-```bash
-kubectl create --edit -f https://raw.githubusercontent.com/cert-manager/website/master/content/docs/tutorials/acme/example/ingress.yaml
-# expected output: ingress.networking.k8s.io/kuard created
+kubectl create --edit -f https://raw.githubusercontent.com/cert-manager/website/master/content/docs/tutorials/acme/example/hello-app-ingress.yaml
+# expected output: ingress.networking.k8s.io/hello-app-ingress created
 ```
 
 > Note: The ingress example we show above has a `host` definition within it. The
@@ -225,8 +188,8 @@ Once it is deployed, you can use the command `kubectl get ingress` to see the st
  of the ingress:
 
 ```text
-NAME      HOSTS     ADDRESS   PORTS     AGE
-kuard     *                   80, 443   17s
+NAME                CLASS   HOSTS                 ADDRESS          PORTS   AGE
+hello-app-ingress   nginx   example.example.com                    80      20s
 ```
 
 It may take a few minutes, depending on your service provider, for the ingress
@@ -234,8 +197,8 @@ to be fully created. When it has been created and linked into place, the
 ingress will show an address as well:
 
 ```text
-NAME      HOSTS     ADDRESS         PORTS     AGE
-kuard     *         203.0.113.2   80        9m
+NAME                CLASS   HOSTS                 ADDRESS          PORTS   AGE
+hello-app-ingress   nginx   example.example.com   192.168.64.100   80      20s
 ```
 
 > Note: The IP address on the ingress *may not* match the IP address that the
@@ -243,35 +206,56 @@ kuard     *         203.0.113.2   80        9m
 > of the service provider hosting your Kubernetes cluster. Since we are using
 > the `ingress-nginx-controller` instead of any cloud-provider specific ingress
 > backend, use the IP address that was defined and allocated for the
-> `quickstart-ingress-nginx-controller ` `LoadBalancer` resource as the primary  access point for
+> `nginx-ingress-ingress-nginx-controller ` `LoadBalancer` resource as the primary  access point for
 > your service.
 
 Make sure the service is reachable at the domain name you added above, for
-example `http://www.example.com`. The simplest way is to open a browser
+example `http://example.example.com`. The simplest way is to open a browser
 and enter the name that you set up in DNS, and for which we just added the
 ingress.
 
-You may also use a command line tool like `curl` to check the ingress.
-
+You can also use a command line tool like curl to check the status of your ingress. Here’s how you can do it:
 ```bash
-$ curl -kivL -H 'Host: www.example.com' 'http://203.0.113.2'
+$ curl -kivL -H 'Host: www.example.com' 'http://192.168.64.100'
 ```
+The options in this curl command will:
+    - Provide verbose output (-v), so you can see detailed request and response headers.
+    - Follow redirects (-L) if necessary.
+    - Display TLS headers (-i) and not error on insecure certificates (-k).
+    
+If the ingress is functioning correctly, you should see a response similar to this:
+```bash
+*   Trying 192.168.64.100:80...
+* Connected to 192.168.64.100 (192.168.64.100) port 80
+> GET / HTTP/1.1
+> Host: example.example.com
+> User-Agent: curl/8.5.0
+> Accept: */*
+> 
+< HTTP/1.1 200 OK
+HTTP/1.1 200 OK
+< Date: Mon, 25 Nov 2024 14:02:15 GMT
+Date: Mon, 25 Nov 2024 14:02:15 GMT
+< Content-Type: text/plain; charset=utf-8
+Content-Type: text/plain; charset=utf-8
+< Content-Length: 66
+Content-Length: 66
+< Connection: keep-alive
+Connection: keep-alive
 
-The options on this curl command will provide verbose output, following any
-redirects, show the TLS headers in the output,  and not error on insecure
-certificates. With `ingress-nginx-controller`, the service will be available
-with a TLS certificate, but it will be using a self-signed certificate
-provided as a default from the `ingress-nginx-controller`. Browsers will show
-a warning that this is an invalid certificate. This is expected and normal,
-as we have not yet used cert-manager to get a fully trusted certificate
-for our site.
+< 
+Hello, world!
+Version: 1.0.0
+Hostname: hello-app-5fdb69cd94-lxtv4
+* Connection #0 to host 192.168.64.100 left intact
+```
+## Step 4 - Assign a DNS name
 
-> *Warning*: It is critical to make sure that your ingress is available and
-> responding correctly on the internet. This quick-start example uses Let's
-> Encrypt to provide the certificates, which expects and validates both that the
-> service is available and that during the process of issuing a certificate uses
-> that validation as proof that the request for the domain belongs to someone
-> with sufficient control over the domain.
+The external IP allocated to the ingress controller is where all incoming traffic should be routed. To make this work, you'll need to add this IP address to a DNS zone that you control. For example, you could map it to a domain like example.example.com.
+
+This tutorial assumes you're familiar with assigning a DNS entry to an IP address. If you're unsure, you can check the documentation provided by your DNS hosting provider for more detailed instructions on how to set up the DNS record.
+
+Once your DNS setup is complete, you can move on to securing your services with SSL/TLS certificates.
 
 ## Step 5 - Deploy cert-manager
 
