@@ -258,7 +258,7 @@ Hostname: hello-app-5fdb69cd94-lxtv4
    
 If curl confirms that the ingress is routing traffic correctly, the next step is to set up DNS to route traffic to the correct address in a user-friendly way, i.e., via a browser.
 
-## Step 4 - Assign a DNS name
+## Step 4 - Configure DNS
 
 The external IP allocated to the ingress controller is where all incoming traffic should be routed. To make this work, you'll need to add this IP address to a DNS zone that you control. For example, you could map it to a domain like `example.example.com.` (Note: this is an example domain used for illustration. You will need to use your own domain name here).
 
