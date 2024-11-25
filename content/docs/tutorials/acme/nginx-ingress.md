@@ -99,9 +99,9 @@ kubectl apply -f https://raw.githubusercontent.com/cert-manager/website/master/c
 # expected output: service "hello-app" created
 ```
 
-So far, we’ve deployed a web server and ensured it is accessible within the Kubernetes cluster through a service. However, to make the application accessible from outside the cluster, we need to expose it using an Ingress resource.
-The Ingress acts as a gateway that manages external HTTP and HTTPS traffic and directs it to the appropriate services within your cluster.
-To use an Ingress, we need an Ingress Controller. This tutorial will guide you through deploying the NGINX Ingress Controller and configuring an Ingress resource to expose your service.
+So far, we’ve deployed a web server and ensured it is accessible within the Kubernetes cluster through a service. However, to make the application accessible from outside the cluster, we need to expose it using an `Ingress Resource`.  
+The Ingress acts as a gateway that manages external HTTP and HTTPS traffic and directs it to the appropriate services within your cluster.  
+To use an ingress resource, we need an `Ingress Controller`. This tutorial will guide you through deploying the NGINX Ingress Controller and configuring an Ingress resource to expose your service.
 
 
 ## Step 3 - Deploy the NGINX Ingress Controller and Ingress Resource
