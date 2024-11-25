@@ -50,7 +50,7 @@ if you're new to Helm, consult the official documentation for additional details
 
 ## Step 2 - Deploy an Example Web Service
 
-To demonstrate how to secure your services with ingress and cert-manager, we will deploy a simple NGINX web server. This server would initially respond to HTTP requests with "hello world!" and will later be configured to handle HTTPS traffic securely using TLS certificates from cert-manager.
+To demonstrate how to secure your services with `ingress` and `cert-manager`, we will deploy a simple NGINX web server called `hello-app`. This server would initially respond to HTTP requests with "hello world!" and will later be configured to handle HTTPS traffic securely using TLS certificates from cert-manager.
 
 Before applying the manifest, ensure you understand its components. The deployment defines a pod running the web server, while the service exposes it within the cluster.
 
