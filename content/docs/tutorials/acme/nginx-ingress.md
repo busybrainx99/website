@@ -220,9 +220,9 @@ Here’s how you can check the status of your ingress:
 $ curl -kivL -H 'Host: www.example.com' 'http://192.168.64.100'
 ```
 The options in this curl command will:
-    - Provide verbose output (-v), so you can see detailed request and response headers.
-    - Follow redirects (-L) if necessary.
-    - Display TLS headers (-i) and not error on insecure certificates (-k).
+ - Provide verbose output (-v), so you can see detailed request and response headers.
+ - Follow redirects (-L) if necessary.
+ - Display TLS headers (-i) and not error on insecure certificates (-k).
     
 If the ingress is functioning correctly, you should see a response similar to this:
 ```bash
@@ -260,11 +260,15 @@ If curl confirms that the ingress is routing traffic correctly, the next step is
 
 ## Step 4 - Assign a DNS name
 
-The external IP allocated to the ingress controller is where all incoming traffic should be routed. To make this work, you'll need to add this IP address to a DNS zone that you control. For example, you could map it to a domain like example.example.com.
+The external IP allocated to the ingress controller is where all incoming traffic should be routed. To make this work, you'll need to add this IP address to a DNS zone that you control. For example, you could map it to a domain like `example.example.com.` (Note: this is an example domain used for illustration. You will need to use your own domain name here).
 
 This tutorial assumes you're familiar with assigning a DNS entry to an IP address. If you're unsure, you can check the documentation provided by your DNS hosting provider for more detailed instructions on how to set up the DNS record.
 
-Once your DNS setup is complete, you can move on to securing your services with SSL/TLS certificates.
+Once the DNS record is set up and propagated, you can access your `hello-app` application via your web browser using your domain name. For example, after completing the DNS setup, you would visit:
+`http://example.example.com` (again, replace this with your actual domain).
+
+At this point, your application is accessible via `HTTP.` However, it is recommended that you use `HTTPS` to ensure secure communication between your users and your application.
+Next, we will configure `TLS certificates` using `cert-manager` and `Let's Encrypt,` allowing us to serve the application securely over HTTPS.
 
 ## Step 5 - Deploy cert-manager
 
