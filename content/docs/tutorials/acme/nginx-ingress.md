@@ -23,12 +23,10 @@ Before you begin, ensure you have the following:
     You should see a list of nodes in your cluster.
    
 3. A domain name
-In this tutorial, we will demonstrate how to expose your service using an Ingress resource, which typically requires a domain name to route traffic to your service.
-
-    - For production environments: You will need to have a domain name that you can map to your Ingress resources (e.g.,`www.cert-manager.io`),    
-ensuring that external traffic can reach your service securely.
-
-    - For this tutorial: We’ll use a placeholder domain, such as `example.com,` to simplify the setup. You can replace it with your own domain name in a real-world scenario
+    In this tutorial, we will demonstrate how to expose your service using an Ingress resource, which typically requires a domain name to route traffic to your service.
+       - For production environments: You will need to have a domain name that you can map to your Ingress resources (e.g.,`www.cert-manager.io`),    
+    ensuring that external traffic can reach your service securely.
+        - For this tutorial: We’ll use a placeholder domain, such as `example.com,` to simplify the setup. You can replace it with your own domain name in a real-world scenario
 
 ## Step 1 - Install Helm
 
