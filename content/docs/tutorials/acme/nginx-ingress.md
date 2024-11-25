@@ -171,11 +171,14 @@ Here’s an example Ingress manifest you can use as a starting point:
 
 ```yaml file=./example/hello-app-ingress.yaml
 ```
-You can download the sample manifest from GitHub , edit it, and submit the manifest to Kubernetes with the command below. Edit the file in your editor, and once it is saved:
-
+You can download the sample manifest from GitHub , edit it, and submit the manifest to Kubernetes with the command below. Once you have edited the file in your editor, save the changes, and the command will automatically apply the updated file:
 ```bash
 kubectl create --edit -f https://raw.githubusercontent.com/cert-manager/website/master/content/docs/tutorials/acme/example/hello-app-ingress.yaml
 # expected output: ingress.networking.k8s.io/hello-app-ingress created
+```
+Alternatively, copy the manifest file above, save it as `ingress.yaml`, and apply it directly:
+```bash
+kubectl apply -f ingress.yaml
 ```
 
 > Note: The ingress example we show above has a `host` definition within it. The
