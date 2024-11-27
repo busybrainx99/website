@@ -399,7 +399,7 @@ Status:
     Type:                  Ready
 Events:                    <none>
 ```
-You should see a `Ready` status indicating the `ClusterIssuer` has successfully registered with the ACME server.
+You should see a `True` status under the `ACMEAccountRegistered` condition, indicating that the ClusterIssuer has successfully registered with the ACME server and is ready to issue certificates.
 
 ## Step 7 - Deploy a TLS Ingress Resource
 
