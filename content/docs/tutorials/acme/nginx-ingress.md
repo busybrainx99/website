@@ -277,7 +277,7 @@ To manage TLS certificates in Kubernetes, cert-manager is required. It automates
 Since we installed Helm earlier, we'll proceed with installing cert-manager using Helm; follow the steps in this
 [Helm guide](../../installation/helm.md). For other methods, refer to the [cert-manager installation documentation](../../installation/README.md) .
 
-###Custom Resources Used by cert-manager
+### Custom Resources Used by cert-manager
 
 cert-manager mainly uses two different custom Kubernetes resources - known as
 [`CRDs`](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) -
@@ -364,7 +364,6 @@ kubectl describe clusterissuer letsencrypt-staging
 ```
 
 ```bash
-$ kubectl describe clusterissuer letsencrypt-staging
 Name:         letsencrypt-staging
 Namespace:    
 Labels:       <none>
@@ -372,13 +371,13 @@ Annotations:  <none>
 API Version:  cert-manager.io/v1
 Kind:         ClusterIssuer
 Metadata:
-  Creation Timestamp:  2024-11-27T18:31:47Z
+  Creation Timestamp:  2024-11-27T19:03:38Z
   Generation:          1
-  Resource Version:    947437
-  UID:                 2c90238e-8f94-43c1-be41-3fd3f0db8281
+  Resource Version:    950735
+  UID:                 2dd95072-532a-4b6f-b9c6-cf63072bef95
 Spec:
   Acme:
-    Email:  user@example.com
+    Email:  testemail@gmail.com
     Private Key Secret Ref:
       Name:  letsencrypt-staging
     Server:  https://acme-staging-v02.api.letsencrypt.org/directory
@@ -388,12 +387,15 @@ Spec:
           Ingress Class Name:  nginx
 Status:
   Acme:
+    Last Private Key Hash:  mquANXPyfarpDtTfcCq4gOIbM7X3NtCPXkTqT0Ht8Us=
+    Last Registered Email:  testemail@gmail.com
+    Uri:                    https://acme-staging-v02.api.letsencrypt.org/acme/acct/173498384
   Conditions:
-    Last Transition Time:  2024-11-27T18:31:50Z
-    Message:               Failed to register ACME account: 400 urn:ietf:params:acme:error:invalidContact: Error creating new account :: invalid contact domain. Contact emails @example.com are forbidden
+    Last Transition Time:  2024-11-27T19:03:40Z
+    Message:               The ACME account was registered with the ACME server
     Observed Generation:   1
-    Reason:                ErrRegisterACMEAccount
-    Status:                False
+    Reason:                ACMEAccountRegistered
+    Status:                True
     Type:                  Ready
 Events:                    <none>
 ```
