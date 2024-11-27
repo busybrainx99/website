@@ -272,125 +272,132 @@ Next, we will configure `TLS certificates` using `cert-manager` and `Let's Encry
 
 ## Step 5 - Deploy cert-manager
 
-We need to install cert-manager to do the work with Kubernetes to request a
-certificate and respond to the challenge to validate it. We can use Helm or
-plain Kubernetes manifests to install cert-manager.
+To manage TLS certificates in Kubernetes, cert-manager is required. It automates the process of requesting certificates and responding to validation challenges. You can install cert-manager using Helm or plain Kubernetes manifests.
 
-Since we installed Helm earlier, we'll assume you want to use Helm; follow the
-[Helm guide](../../installation/helm.md). For other methods, read the
-[installation documentation](../../installation/README.md) for cert-manager.
+Since we installed Helm earlier, we'll proceed with installing cert-manager using Helm; follow the steps in this
+[Helm guide](../../installation/helm.md). For other methods, refer to the [cert-manager installation documentation](../../installation/README.md) .
+
+###Custom Resources Used by cert-manager
 
 cert-manager mainly uses two different custom Kubernetes resources - known as
 [`CRDs`](https://kubernetes.io/docs/concepts/extend-kubernetes/api-extension/custom-resources/) -
-to configure and control how it operates, as well as to store state. These
-resources are Issuers and Certificates.
+to configure and control certificate issuance and operations: Issuers and Certificates. 
 
 ### Issuers
 
-An Issuer defines _how_ cert-manager will request TLS certificates. Issuers are
-specific to a single namespace in Kubernetes, but there's also a `ClusterIssuer`
-which is meant to be a cluster-wide version.
+Issuers define how cert-manager requests TLS certificates. They can either be namespace-scoped(`Issuers`) or cluster-scoped(`ClusterIssuer`).
 
-Take care to ensure that your Issuers are created in the same namespace as the
-certificates you want to create. You might need to add `-n my-namespace` to your
-`kubectl create` commands.
+Here are the key points to understand:
 
-Your other option is to replace your `Issuers` with `ClusterIssuers`;
-`ClusterIssuer` resources apply across all Ingress resources in your cluster.
-If using a `ClusterIssuer`, remember to update the Ingress annotation `cert-manager.io/issuer` to
-`cert-manager.io/cluster-issuer`.
+ - Issuer: Scoped to a single namespace. Certificates and Issuers must reside in the same namespace.
+ - ClusterIssuer: Accessible across all namespaces in the cluster. Useful for centralized management, especially when certificates are required for resources in multiple namespaces.
 
-If you see issues with issuers, follow the [Troubleshooting Issuing ACME Certificates](../../troubleshooting/acme.md) guide.
+Since we will deploy cert-manager resources in a separate namespace, we'll use a ClusterIssuer. If you decide to use ClusterIssuer, update the annotations in your Ingress manifests accordingly:
+```bash
+annotations:
+  cert-manager.io/cluster-issuer: <name-of-cluster-issuer>
+```
+Alternatively, if you prefer to scope certificate issuance to specific namespaces, you can use an `Issuer.` The `Issuer` must be created in the same namespace as the `Certificate` and potentially other related resources like the Ingress. Since these resources are usually in the `default` namespace or a namespace of your choice, ensure that both the `Issuer` and `Certificate` are located in that namespace.
+To reference the `Issuer` in your Ingress, use the annotation `cert-manager.io/issuer.` For example:
+```bash
+annotations:
+  cert-manager.io/issuer: my-issuer
+```
+
+For troubleshooting or guidance on how Issuers work, see the [Issuer Troubleshooting Guide](../../troubleshooting/acme.md) guide.
 
 More information on the differences between `Issuers` and `ClusterIssuers` - including
 when you might choose to use each can be found on [Issuer concepts](../../concepts/issuer.md#namespaces).
 
 ### Certificates
 
-Certificates resources allow you to specify the details of the certificate you
-want to request. They reference an issuer to define _how_ they'll be issued.
+Certificates specify the details of the TLS certificate you want to request. These resources reference an Issuer (or ClusterIssuer) to manage certificate issuance. 
+For example:
+ - The spec.issuerRef field in a Certificate resource determines whether to use an Issuer or ClusterIssuer.
 
-For more information, see [Certificate concepts](../../usage/certificate.md).
+For more information, see [Certificate Concepts](../../usage/certificate.md).
 
-## Step 6 - Configure a Let's Encrypt Issuer
+## Step 6 - Configure a Let's Encrypt ClusterIssuer
 
-We'll set up two issuers for Let's Encrypt in this example: staging and production.
+We'll set up two `ClusterIssuers` for Let's Encrypt in this example: staging and production.
 
 The Let's Encrypt production issuer has [very strict rate limits](https://letsencrypt.org/docs/rate-limits/).
-When you're experimenting and learning, it can be very easy to hit those limits. Because of that risk,
-we'll start with the Let's Encrypt staging issuer, and once we're happy that it's working
+When you're experimenting and learning, it's easy to hit those limits. Because of that risk,
+we'll start with the Let's Encrypt staging issuer. Once we're happy it's working,
 we'll switch to the production issuer.
 
-Note that you'll see a warning about untrusted certificates from the staging issuer, but that's totally expected.
+> Note: You may see a warning about untrusted certificates from the staging issuer, but this is expected.
 
+### Define the ClusterIssuer
+   
 Create this definition locally and update the email address to your own. This
 email is required by Let's Encrypt and used to notify you of certificate
 expiration and updates.
 
-```yaml file=./example/staging-issuer.yaml
+```yaml file=./example/hello-staging-issuer.yaml
 ```
 
 Once edited, apply the custom resource:
 
 ```bash
-kubectl create --edit -f https://raw.githubusercontent.com/cert-manager/website/master/content/docs/tutorials/acme/example/staging-issuer.yaml
-# expected output: issuer.cert-manager.io "letsencrypt-staging" created
+kubectl create --edit -f https://raw.githubusercontent.com/cert-manager/website/master/content/docs/tutorials/acme/example/hello-staging-issuer.yaml
+# expected output: clusterissuer.cert-manager.io/letsencrypt-staging created
 ```
 
-Also create a production issuer and deploy it. As with the staging issuer, you
-will need to update this example and add in your own email address.
+Similarly, define and deploy the production ClusterIssuer. Be sure to update the email address:
 
-```yaml file=./example/production-issuer.yaml
+```yaml file=./example/hello-prod-issuer.yaml
 ```
 
 ```bash
-kubectl create --edit -f https://raw.githubusercontent.com/cert-manager/website/master/content/docs/tutorials/acme/example/production-issuer.yaml
-# expected output: issuer.cert-manager.io "letsencrypt-prod" created
+kubectl create --edit -f https://raw.githubusercontent.com/cert-manager/website/master/content/docs/tutorials/acme/example/hello-prod-issuer.yaml
+# expected output: clusterissuer.cert-manager.io/letsencrypt-prod created
+```
+Both `ClusterIssuers` are configured to use the [`HTTP01`](../../configuration/acme/http01/README.md) challenge provider.
+
+
+### Verify the ClusterIssuer
+
+After creating the ClusterIssuer, check its status with the following command:
+```bash
+kubectl describe clusterissuer letsencrypt-staging
 ```
 
-Both of these issuers are configured to use the [`HTTP01`](../../configuration/acme/http01/README.md) challenge provider.
-
-Check on the status of the issuer after you create it:
-
 ```bash
-$ kubectl describe issuer letsencrypt-staging
+$ kubectl describe clusterissuer letsencrypt-staging
 Name:         letsencrypt-staging
-Namespace:    default
+Namespace:    
 Labels:       <none>
-Annotations:  kubectl.kubernetes.io/last-applied-configuration={"apiVersion":"cert-manager.io/v1","kind":"Issuer","metadata":{"annotations":{},"name":"letsencrypt-staging","namespace":"default"},(...)}
+Annotations:  <none>
 API Version:  cert-manager.io/v1
-Kind:         Issuer
+Kind:         ClusterIssuer
 Metadata:
-  Cluster Name:
-  Creation Timestamp:  2018-11-17T18:03:54Z
-  Generation:          0
-  Resource Version:    9092
-  Self Link:           /apis/cert-manager.io/v1/namespaces/default/issuers/letsencrypt-staging
-  UID:                 25b7ae77-ea93-11e8-82f8-42010a8a00b5
+  Creation Timestamp:  2024-11-27T18:31:47Z
+  Generation:          1
+  Resource Version:    947437
+  UID:                 2c90238e-8f94-43c1-be41-3fd3f0db8281
 Spec:
   Acme:
-    Email:  email@example.com
+    Email:  user@example.com
     Private Key Secret Ref:
-      Key:
       Name:  letsencrypt-staging
     Server:  https://acme-staging-v02.api.letsencrypt.org/directory
     Solvers:
-      Http 01:
+      http01:
         Ingress:
-          Class:  nginx
+          Ingress Class Name:  nginx
 Status:
   Acme:
-    Uri:  https://acme-staging-v02.api.letsencrypt.org/acme/acct/7374163
   Conditions:
-    Last Transition Time:  2018-11-17T18:04:00Z
-    Message:               The ACME account was registered with the ACME server
-    Reason:                ACMEAccountRegistered
-    Status:                True
+    Last Transition Time:  2024-11-27T18:31:50Z
+    Message:               Failed to register ACME account: 400 urn:ietf:params:acme:error:invalidContact: Error creating new account :: invalid contact domain. Contact emails @example.com are forbidden
+    Observed Generation:   1
+    Reason:                ErrRegisterACMEAccount
+    Status:                False
     Type:                  Ready
 Events:                    <none>
 ```
-
-You should see the issuer listed with a registered account.
+You should see a `Ready` status indicating the `ClusterIssuer` has successfully registered with the ACME server.
 
 ## Step 7 - Deploy a TLS Ingress Resource
 
