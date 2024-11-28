@@ -1,15 +1,15 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: hello-app-ingress-staging-tls
+  name: hello-app-ingress
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-staging"
+    cert-manager.io/cluster-issuer: "letsencrypt-staging"     #ClusterIssuer for staging environment 
 spec:
   ingressClassName: nginx
   tls:
   - hosts:
     - example.example.com
-    secretName: staging-www-tls 
+    secretName: staging-www-tls # TLS secret for staging
   rules:
   - host: example.example.com
     http:
