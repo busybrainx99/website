@@ -3,15 +3,15 @@ kind: Ingress
 metadata:
   name: hello-app-ingress
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-staging"     #ClusterIssuer for staging environment 
+    cert-manager.io/cluster-issuer: letsencrypt-staging  # clusterIssuer for staging environment
 spec:
   ingressClassName: nginx
   tls:
   - hosts:
-    - example.example.com
-    secretName: staging-www-tls # TLS secret for staging
+    - www.goodnesseboh.engineer
+    secretName: staging-app-tls  # TLS secret for staging
   rules:
-  - host: example.example.com
+  - host: www.goodnesseboh.engineer
     http:
       paths:
       - path: /
