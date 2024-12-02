@@ -3,13 +3,13 @@ kind: Ingress
 metadata:
   name: hello-app-ingress
   annotations:
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"     #ClusterIssuer for production environment
+    cert-manager.io/cluster-issuer: letsencrypt-prod  # clusterIssuer for staging environment
 spec:
   ingressClassName: nginx
   tls:
   - hosts:
     - example.example.com
-    secretName: prod-www-tls # TLS secret for production
+    secretName: prod-hello-app-tls  # TLS secret for staging
   rules:
   - host: example.example.com
     http:
