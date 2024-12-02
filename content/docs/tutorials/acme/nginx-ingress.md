@@ -142,7 +142,7 @@ Once the NGINX Ingress Controller is deployed, it can take a minute or two for t
 
 You can verify the status of the ingress controller service with the following command:
 ```bash
-$ kubectl get svc
+kubectl get svc
 ```
 This will output a table similar to the following:
 ```bash
@@ -217,7 +217,7 @@ example `http://example.example.com`. While the DNS configuration is not yet in 
 
 Here’s how you can check the status of your ingress:
 ```bash
-$ curl -kivL -H 'Host: www.example.com' 'http://192.168.64.100'
+curl -kivL -H 'Host: www.example.com' 'http://192.168.64.100'
 ```
 The options in this curl command will:
  - Provide verbose output (-v), so you can see detailed request and response headers.
@@ -438,8 +438,8 @@ which you can request and see:
 
 ```bash
 $ kubectl get certificate
-NAME                     READY   SECRET                   AGE
-quickstart-example-tls   True    quickstart-example-tls   16m
+NAME              READY   SECRET            AGE
+staging-app-tls   True    staging-app-tls   4m56s
 ```
 
 cert-manager reflects the state of the process for every request in the
@@ -447,52 +447,55 @@ certificate object. You can view this information using the
 `kubectl describe` command:
 
 ```bash
-$ kubectl describe certificate quickstart-example-tls
-Name:         quickstart-example-tls
+$ kubectl describe certificate staging-app-tls
+Name:         staging-app-tls
 Namespace:    default
 Labels:       <none>
 Annotations:  <none>
 API Version:  cert-manager.io/v1
 Kind:         Certificate
 Metadata:
-  Cluster Name:
-  Creation Timestamp:  2018-11-17T17:58:37Z
-  Generation:          0
+  Creation Timestamp:  2024-12-02T18:32:22Z
+  Generation:          1
   Owner References:
     API Version:           networking.k8s.io/v1
     Block Owner Deletion:  true
     Controller:            true
     Kind:                  Ingress
-    Name:                  kuard
-    UID:                   a3e9f935-ea87-11e8-82f8-42010a8a00b5
-  Resource Version:        9295
-  Self Link:               /apis/cert-manager.io/v1/namespaces/default/certificates/quickstart-example-tls
-  UID:                     68d43400-ea92-11e8-82f8-42010a8a00b5
+    Name:                  hello-app-ingress
+    UID:                   3693c9c6-6b86-452e-ac44-09aca0472a81
+  Resource Version:        10477
+  UID:                     eea055e8-48b4-4b2a-af41-bcf4f2eb86d6
 Spec:
   Dns Names:
-    www.example.com
+    www.goodnesseboh.engineer
   Issuer Ref:
-    Kind:       Issuer
+    Group:      cert-manager.io
+    Kind:       ClusterIssuer
     Name:       letsencrypt-staging
-  Secret Name:  quickstart-example-tls
+  Secret Name:  staging-app-tls
+  Usages:
+    digital signature
+    key encipherment
 Status:
-  Acme:
-    Order:
-      URL:  https://acme-staging-v02.api.letsencrypt.org/acme/order/7374163/13665676
   Conditions:
-    Last Transition Time:  2018-11-17T18:05:57Z
-    Message:               Certificate issued successfully
-    Reason:                CertIssued
+    Last Transition Time:  2024-12-02T18:32:57Z
+    Message:               Certificate is up to date and has not expired
+    Observed Generation:   1
+    Reason:                Ready
     Status:                True
     Type:                  Ready
+  Not After:               2025-03-02T17:34:22Z
+  Not Before:              2024-12-02T17:34:23Z
+  Renewal Time:            2025-01-31T17:34:22Z
+  Revision:                1
 Events:
-  Type     Reason          Age                From          Message
-  ----     ------          ----               ----          -------
-  Normal   CreateOrder     9m                 cert-manager  Created new ACME order, attempting validation...
-  Normal   DomainVerified  8m                 cert-manager  Domain "www.example.com" verified with "http-01" validation
-  Normal   IssueCert       8m                 cert-manager  Issuing certificate...
-  Normal   CertObtained    7m                 cert-manager  Obtained certificate from ACME server
-  Normal   CertIssued      7m                 cert-manager  Certificate issued Successfully
+  Type    Reason     Age    From                                       Message
+  ----    ------     ----   ----                                       -------
+  Normal  Issuing    6m32s  cert-manager-certificates-trigger          Issuing certificate as Secret does not exist
+  Normal  Generated  6m32s  cert-manager-certificates-key-manager      Stored new private key in temporary Secret resource "staging-app-tls-xw4j4"
+  Normal  Requested  6m32s  cert-manager-certificates-request-manager  Created new CertificateRequest resource "staging-app-tls-1"
+  Normal  Issuing    5m57s  cert-manager-certificates-issuing          The certificate has been successfully issued
 ```
 
 The events associated with this resource and listed at the bottom
@@ -504,21 +507,25 @@ the certificate based on the secret used in the ingress resource. You can
 use the describe command as well to see some details:
 
 ```bash
-$ kubectl describe secret quickstart-example-tls
-Name:         quickstart-example-tls
+$ kubectl describe secret staging-app-tls
+Name:         staging-app-tls
 Namespace:    default
-Labels:       cert-manager.io/certificate-name=quickstart-example-tls
-Annotations:  cert-manager.io/alt-names=www.example.com
-              cert-manager.io/common-name=www.example.com
-              cert-manager.io/issuer-kind=Issuer
-              cert-manager.io/issuer-name=letsencrypt-staging
+Labels:       controller.cert-manager.io/fao=true
+Annotations:  cert-manager.io/alt-names: www.goodnesseboh.engineer
+              cert-manager.io/certificate-name: staging-app-tls
+              cert-manager.io/common-name: www.goodnesseboh.engineer
+              cert-manager.io/ip-sans: 
+              cert-manager.io/issuer-group: cert-manager.io
+              cert-manager.io/issuer-kind: ClusterIssuer
+              cert-manager.io/issuer-name: letsencrypt-staging
+              cert-manager.io/uri-sans: 
 
 Type:  kubernetes.io/tls
 
 Data
 ====
-tls.crt:  3566 bytes
-tls.key:  1675 bytes
+tls.crt:  3769 bytes
+tls.key:  1679 bytes
 ```
 
 Now that we have confidence that everything is configured correctly, you
@@ -546,58 +553,68 @@ you should see the example KUARD running at your domain with a signed TLS
 certificate.
 
 ```bash
-$ kubectl describe certificate quickstart-example-tls
-Name:         quickstart-example-tls
+$ kubectl describe certificate prod-hello-app-tls
+Name:         prod-hello-app-tls
 Namespace:    default
 Labels:       <none>
 Annotations:  <none>
 API Version:  cert-manager.io/v1
 Kind:         Certificate
 Metadata:
-  Cluster Name:
-  Creation Timestamp:  2018-11-17T18:36:48Z
-  Generation:          0
+  Creation Timestamp:  2024-12-02T18:43:28Z
+  Generation:          1
   Owner References:
     API Version:           networking.k8s.io/v1
     Block Owner Deletion:  true
     Controller:            true
     Kind:                  Ingress
-    Name:                  kuard
-    UID:                   a3e9f935-ea87-11e8-82f8-42010a8a00b5
-  Resource Version:        283686
-  Self Link:               /apis/cert-manager.io/v1/namespaces/default/certificates/quickstart-example-tls
-  UID:                     bdd93b32-ea97-11e8-82f8-42010a8a00b5
+    Name:                  hello-app-ingress
+    UID:                   3693c9c6-6b86-452e-ac44-09aca0472a81
+  Resource Version:        12475
+  UID:                     c886a3d1-cf7d-4d58-8af8-478ec5ff27bd
 Spec:
   Dns Names:
-    www.example.com
+    www.goodnesseboh.engineer
   Issuer Ref:
-    Kind:       Issuer
+    Group:      cert-manager.io
+    Kind:       ClusterIssuer
     Name:       letsencrypt-prod
-  Secret Name:  quickstart-example-tls
+  Secret Name:  prod-hello-app-tls
+  Usages:
+    digital signature
+    key encipherment
 Status:
   Conditions:
-    Last Transition Time:  2019-01-09T13:52:05Z
-    Message:               Certificate does not exist
-    Reason:                NotFound
-    Status:                False
+    Last Transition Time:  2024-12-02T18:44:03Z
+    Message:               Certificate is up to date and has not expired
+    Observed Generation:   1
+    Reason:                Ready
+    Status:                True
     Type:                  Ready
+  Not After:               2025-03-02T17:45:29Z
+  Not Before:              2024-12-02T17:45:30Z
+  Renewal Time:            2025-01-31T17:45:29Z
+  Revision:                1
 Events:
-  Type    Reason        Age   From          Message
-  ----    ------        ----  ----          -------
-  Normal  Generated     18s   cert-manager  Generated new private key
-  Normal  OrderCreated  18s   cert-manager  Created Order resource "quickstart-example-tls-889745041"
+  Type    Reason     Age   From                                       Message
+  ----    ------     ----  ----                                       -------
+  Normal  Issuing    67s   cert-manager-certificates-trigger          Issuing certificate as Secret does not exist
+  Normal  Generated  66s   cert-manager-certificates-key-manager      Stored new private key in temporary Secret resource "prod-hello-app-tls-824gl"
+  Normal  Requested  66s   cert-manager-certificates-request-manager  Created new CertificateRequest resource "prod-hello-app-tls-1"
+  Normal  Issuing    32s   cert-manager-certificates-issuing          The certificate has been successfully issued
 ```
 
 You can see the current state of the ACME Order by running `kubectl describe`
 on the Order resource that cert-manager has created for your Certificate:
 
 ```bash
-$ kubectl describe order quickstart-example-tls-889745041
+$ kubectl describe order prod-hello-app-tls-1-2985368724 
 ...
 Events:
-  Type    Reason      Age   From          Message
-  ----    ------      ----  ----          -------
-  Normal  Created     90s   cert-manager  Created Challenge resource "quickstart-example-tls-889745041-0" for domain "www.example.com"
+  Type    Reason    Age    From                 Message
+  ----    ------    ----   ----                 -------
+  Normal  Created   3m42s  cert-manager-orders  Created Challenge resource "prod-hello-app-tls-1-2985368724-1406537188" for domain "www.goodnesseboh.engineer"
+  Normal  Complete  3m9s   cert-manager-orders  Order completed successfully
 ```
 
 Here, we can see that cert-manager has created 1 'Challenge' resource to fulfill
@@ -605,7 +622,7 @@ the Order. You can dig into the state of the current ACME challenge by running
 `kubectl describe` on the automatically created Challenge resource:
 
 ```bash
-$ kubectl describe challenge quickstart-example-tls-889745041-0
+$ kubectl describe challenge prod-hello-app-tls-1-2985368724-1406537188
 ...
 Status:
   Presented:   true
@@ -626,7 +643,7 @@ You should keep an eye out for new events on the challenge resource, as a
 your ingress controller is at updating rules):
 
 ```bash
-$ kubectl describe challenge quickstart-example-tls-889745041-0
+$ kubectl describe challenge prod-hello-app-tls-1-2985368724 
 ...
 Status:
   Presented:   false
