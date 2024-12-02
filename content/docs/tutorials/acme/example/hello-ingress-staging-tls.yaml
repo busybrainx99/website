@@ -8,10 +8,10 @@ spec:
   ingressClassName: nginx
   tls:
   - hosts:
-    - www.goodnesseboh.engineer
+    - example.example.com
     secretName: staging-app-tls  # TLS secret for staging
   rules:
-  - host: www.goodnesseboh.engineer
+  - host: example.example.com
     http:
       paths:
       - path: /
