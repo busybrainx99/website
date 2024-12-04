@@ -408,7 +408,7 @@ annotations on the ingress with [`ingress-shim`](../../usage/ingress.md) or dire
 
 In this example, we will add annotations to the ingress, and take advantage
 of ingress-shim to have it create the certificate resource on our behalf.
-After creating a certificate, the cert-manager will update or create an ingress
+After creating a certificate, cert-manager will update or create an ingress
 resource and use that to validate the domain. Once verified and issued,
 cert-manager will create or update the secret defined in the certificate.
 
@@ -442,7 +442,8 @@ NAME              READY   SECRET            AGE
 staging-app-tls   True    staging-app-tls   4m56s
 ```
 
-Note: It may take some time for the certificate to be issued and for the READY status to change to True. This delay depends on factors like DNS propagation and the ACME challenge processing by cert-manager. If the status does not update immediately, wait a few minutes and check again. You can also monitor the process by describing the certificate resource:
+> Note: It may take some time for the certificate to be issued and for the READY status to change to True. This delay depends on factors like DNS propagation and the ACME challenge processing by cert-> 
+> manager. If the status does not update immediately, wait a few minutes and check again. You can also monitor the process by describing the certificate resource:
 
 ```bash
 $ kubectl describe certificate staging-app-tls
