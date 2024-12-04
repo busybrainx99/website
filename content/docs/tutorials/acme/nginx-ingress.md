@@ -403,14 +403,12 @@ You should see a `True` status under the `ACMEAccountRegistered` condition, indi
 
 ## Step 7 - Deploy a TLS Ingress Resource
 
-With all the prerequisite configuration in place, we can now do the pieces to
-request the TLS certificate. There are two primary ways to do this: using
-annotations on the ingress with [`ingress-shim`](../../usage/ingress.md) or
-directly creating a certificate resource.
+Now that the required configurations are in place, we can proceed to request a TLS certificate for our application.  There are two primary ways to do this: using
+annotations on the ingress with [`ingress-shim`](../../usage/ingress.md) or directly creating a certificate resource.
 
 In this example, we will add annotations to the ingress, and take advantage
 of ingress-shim to have it create the certificate resource on our behalf.
-After creating a certificate, the cert-manager will update or create a ingress
+After creating a certificate, the cert-manager will update or create an ingress
 resource and use that to validate the domain. Once verified and issued,
 cert-manager will create or update the secret defined in the certificate.
 
@@ -420,31 +418,31 @@ cert-manager will create or update the secret defined in the certificate.
 > In our example, we are using annotations on the ingress (and ingress-shim)
 > which will create the correct secrets on your behalf.
 
-Edit the ingress add the annotations that were commented out in our earlier
-example:
+### Deploy Staging Ingress
 
-```yaml file=./example/ingress-tls.yaml
+Edit the ingress by adding the necessary annotations and TLS configurations to your ingress for staging. 
+For example:
+```yaml file=./example/hello-ingress-staging-tls.yaml
 ```
 
 and apply it:
-
 ```bash
-kubectl create --edit -f https://raw.githubusercontent.com/cert-manager/website/master/content/docs/tutorials/acme/example/ingress-tls.yaml
-# expected output: ingress.networking.k8s.io/kuard configured
+kubectl apply -f ingress.yaml
 ```
 
-Cert-manager will read these annotations and use them to create a certificate,
-which you can request and see:
 
+Cert-manager will process the annotations in your ingress resource to create a certificate. After applying the configuration, you can verify the status using the following command:
 ```bash
-$ kubectl get certificate
+kubectl get certificate
+```
+
+For example, the output might look like this:
+```bash
 NAME              READY   SECRET            AGE
 staging-app-tls   True    staging-app-tls   4m56s
 ```
 
-cert-manager reflects the state of the process for every request in the
-certificate object. You can view this information using the
-`kubectl describe` command:
+Note: It may take some time for the certificate to be issued and for the READY status to change to True. This delay depends on factors like DNS propagation and the ACME challenge processing by cert-manager. If the status does not update immediately, wait a few minutes and check again. You can also monitor the process by describing the certificate resource:
 
 ```bash
 $ kubectl describe certificate staging-app-tls
@@ -468,7 +466,7 @@ Metadata:
   UID:                     eea055e8-48b4-4b2a-af41-bcf4f2eb86d6
 Spec:
   Dns Names:
-    www.goodnesseboh.engineer
+    example.example.com
   Issuer Ref:
     Group:      cert-manager.io
     Kind:       ClusterIssuer
@@ -511,9 +509,9 @@ $ kubectl describe secret staging-app-tls
 Name:         staging-app-tls
 Namespace:    default
 Labels:       controller.cert-manager.io/fao=true
-Annotations:  cert-manager.io/alt-names: www.goodnesseboh.engineer
+Annotations:  cert-manager.io/alt-names: example.example.com
               cert-manager.io/certificate-name: staging-app-tls
-              cert-manager.io/common-name: www.goodnesseboh.engineer
+              cert-manager.io/common-name: example.example.com
               cert-manager.io/ip-sans: 
               cert-manager.io/issuer-group: cert-manager.io
               cert-manager.io/issuer-kind: ClusterIssuer
@@ -529,27 +527,20 @@ tls.key:  1679 bytes
 ```
 
 Now that we have confidence that everything is configured correctly, you
-can update the annotations in the ingress to specify the production issuer:
+can update the annotations and TLS configuration in the ingress to specify the production issuer:
 
-```yaml file=./example/ingress-tls-final.yaml
+```yaml file=./example/hello-ingress-prod-tls.yaml
 ```
-
+Apply the updated configuration
 ```bash
-$ kubectl create --edit -f https://raw.githubusercontent.com/cert-manager/website/master/content/docs/tutorials/acme/example/ingress-tls-final.yaml
-ingress.networking.k8s.io/kuard configured
+kubectl apply -f ingress.yaml
 ```
 
-You will also need to delete the existing secret, which cert-manager is watching
-and will cause it to reprocess the request with the updated issuer.
-
-```bash
-$ kubectl delete secret quickstart-example-tls
-secret "quickstart-example-tls" deleted
-```
+Since we are using distinct secret names for staging (staging-app-tls) and production (prod-app-tls), there is no need to delete the existing secret. Cert-manager will create a new secret for the production configuration.
 
 This will start the process to get a new certificate, and using describe
 you can see the status. Once the production certificate has been updated,
-you should see the example KUARD running at your domain with a signed TLS
+you should see the example hello app running at your domain with a signed TLS
 certificate.
 
 ```bash
@@ -574,7 +565,7 @@ Metadata:
   UID:                     c886a3d1-cf7d-4d58-8af8-478ec5ff27bd
 Spec:
   Dns Names:
-    www.goodnesseboh.engineer
+    example.example.com
   Issuer Ref:
     Group:      cert-manager.io
     Kind:       ClusterIssuer
@@ -613,89 +604,13 @@ $ kubectl describe order prod-hello-app-tls-1-2985368724
 Events:
   Type    Reason    Age    From                 Message
   ----    ------    ----   ----                 -------
-  Normal  Created   3m42s  cert-manager-orders  Created Challenge resource "prod-hello-app-tls-1-2985368724-1406537188" for domain "www.goodnesseboh.engineer"
+  Normal  Created   3m42s  cert-manager-orders  Created Challenge resource "prod-hello-app-tls-1-2985368724-1406537188" for domain "example.example.com"
   Normal  Complete  3m9s   cert-manager-orders  Order completed successfully
 ```
+## Conclusion
 
-Here, we can see that cert-manager has created 1 'Challenge' resource to fulfill
-the Order. You can dig into the state of the current ACME challenge by running
-`kubectl describe` on the automatically created Challenge resource:
+Congratulations! You’ve successfully configured cert-manager to issue TLS certificates for both staging and production environments using Let's Encrypt. By following this tutorial, you've not only secured your application's ingress but also ensured that traffic to your cluster is encrypted and routed through NGINX with the proper TLS configuration.
 
-```bash
-$ kubectl describe challenge prod-hello-app-tls-1-2985368724-1406537188
-...
-Status:
-  Presented:   true
-  Processing:  true
-  Reason:      Waiting for http-01 challenge propagation
-  State:       pending
-Events:
-  Type    Reason     Age   From          Message
-  ----    ------     ----  ----          -------
-  Normal  Started    15s   cert-manager  Challenge scheduled for processing
-  Normal  Presented  14s   cert-manager  Presented challenge using http-01 challenge mechanism
-```
+With cert-manager automatically managing certificate renewals, you no longer need to worry about the validity of your certificates. This setup guarantees secure and trusted HTTPS connections to your services, enhancing the security of both internal and external traffic.
 
-From above, we can see that the challenge has been 'presented' and cert-manager
-is waiting for the challenge record to propagate to the ingress controller.
-You should keep an eye out for new events on the challenge resource, as a
-'success' event should be printed after a minute or so (depending on how fast
-your ingress controller is at updating rules):
-
-```bash
-$ kubectl describe challenge prod-hello-app-tls-1-2985368724 
-...
-Status:
-  Presented:   false
-  Processing:  false
-  Reason:      Successfully authorized domain
-  State:       valid
-Events:
-  Type    Reason          Age   From          Message
-  ----    ------          ----  ----          -------
-  Normal  Started         71s   cert-manager  Challenge scheduled for processing
-  Normal  Presented       70s   cert-manager  Presented challenge using http-01 challenge mechanism
-  Normal  DomainVerified  2s    cert-manager  Domain "www.example.com" verified with "http-01" validation
-```
-
-> Note: If your challenges are not becoming 'valid' and remain in the 'pending'
-> state (or enter into a 'failed' state), it is likely there is some kind of
-> configuration error. Read the [Challenge resource reference
-> docs](../../reference/api-docs.md#acme.cert-manager.io/v1.Challenge) for more
-> information on debugging failing challenges.
-
-Once the challenge(s) have been completed, their corresponding challenge
-resources will be *deleted*, and the 'Order' will be updated to reflect the
-new state of the Order:
-
-```bash
-$ kubectl describe order quickstart-example-tls-889745041
-...
-Events:
-  Type    Reason      Age   From          Message
-  ----    ------      ----  ----          -------
-  Normal  Created     90s   cert-manager  Created Challenge resource "quickstart-example-tls-889745041-0" for domain "www.example.com"
-  Normal  OrderValid  16s   cert-manager  Order completed successfully
-```
-
-Finally, the 'Certificate' resource will be updated to reflect the state of the
-issuance process. If all is well, you should be able to 'describe' the Certificate
-and see something like the below:
-
-```bash
-$ kubectl describe certificate quickstart-example-tls
-Status:
-  Conditions:
-    Last Transition Time:  2019-01-09T13:57:52Z
-    Message:               Certificate is up to date and has not expired
-    Reason:                Ready
-    Status:                True
-    Type:                  Ready
-  Not After:               2019-04-09T12:57:50Z
-Events:
-  Type    Reason         Age                  From          Message
-  ----    ------         ----                 ----          -------
-  Normal  Generated      11m                  cert-manager  Generated new private key
-  Normal  OrderCreated   11m                  cert-manager  Created Order resource "quickstart-example-tls-889745041"
-  Normal  OrderComplete  10m                  cert-manager  Order "quickstart-example-tls-889745041" completed successfully
-```
+If you wish to explore more advanced cert-manager features or need help debugging challenges, feel free to explore the official documentation. For additional support, you can also join the community forums or Slack channels.
