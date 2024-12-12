@@ -217,7 +217,7 @@ example `http://example.example.com`. While the DNS configuration is not yet in 
 
 Here’s how you can check the status of your ingress:
 ```bash
-curl -kivL -H 'Host: www.example.com' 'http://192.168.64.100'
+curl -kivL -H 'Host: example.example.com' 'http://192.168.64.100'
 ```
 The options in this curl command will:
  - Provide verbose output (-v), so you can see detailed request and response headers.
